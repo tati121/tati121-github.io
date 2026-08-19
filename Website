@@ -1,0 +1,44 @@
+from pathlib import Path
+import shutil, zipfile
+
+src = Path("/mnt/data/tati_artist_site")
+deploy = Path("/mnt/data/TATI_free_host_ready")
+if deploy.exists():
+    shutil.rmtree(deploy)
+deploy.mkdir()
+
+# Copy the two required site files.
+shutil.copy2(src / "index.html", deploy / "index.html")
+shutil.copy2(src / "tati-photo.jpeg", deploy / "tati-photo.jpeg")
+
+# Prevent static hosts such as GitHub Pages from trying to process the site.
+(deploy / ".nojekyll").write_text("", encoding="utf-8")
+
+# Add a simple upload/readme file.
+(deploy / "README.txt").write_text(
+    """TATI FREE STATIC WEBSITE
+
+Upload ALL files in this folder to a static website host.
+
+Required:
+- index.html
+- tati-photo.jpeg
+- .nojekyll (useful for GitHub Pages)
+
+Recommended free option: GitHub Pages.
+Create a public repository named YOURUSERNAME.github.io, upload these files
+to the repository root, then enable GitHub Pages under Settings > Pages.
+Your site will be available at https://YOURUSERNAME.github.io/
+""",
+    encoding="utf-8"
+)
+
+zip_path = Path("/mnt/data/TATI_free_host_ready.zip")
+if zip_path.exists():
+    zip_path.unlink()
+
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for p in deploy.iterdir():
+        z.write(p, arcname=p.name)
+
+print(zip_path)
